@@ -1,0 +1,53 @@
+version: '3.7'
+services:
+  db:
+    image: mysql:5.7
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456789
+      - MYSQL_DATABASE=diary-db
+      - MYSQL_USER=hung-user
+      - MYSQL_PASSWORD=123456789
+    logging:
+      driver: "none"
+    ports:
+      - '3306:3306'
+
+  backend:
+    image: node:13
+    working_dir: /var/app/backend
+    depends_on:
+      - db
+    ports:
+      - 4000:4000
+      - 9229:9229
+    command: npm start
+    volumes:
+      - ./packages/backend:/var/app/backend
+      - node_modules:/var/app/backend/node_modules
+
+  frontend:
+    image: node:13
+    working_dir: /var/app/frontend
+    ports:
+      - 3000:3000
+    command: npm start
+    stdin_open: true
+    volumes:
+      - ./packages/frontend:/var/app/frontend
+
+  phpadmin:
+    image: registry.code.fbi.h-da.de/ewa_public/ss21_base_project/ewa_phpmyadmin:latest
+    container_name: ewa_phpmyadmin
+    ports:
+      - 127.0.0.1:8085:80
+    logging:
+      driver: "none"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+volumes:
+  node_modules:
